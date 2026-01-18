@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../utils/read_provider.dart';
 import '../utils/favorites_provider.dart';
 import '../utils/notes_provider.dart';
+import '../utils/read_position_provider.dart';
 
 class ChapterDetailScreen extends StatefulWidget {
   final Map<String, dynamic> chapter;
@@ -26,16 +27,35 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
   void initState() {
     super.initState();
 
-    // تحميل ملاحظات الفصل
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final title = widget.chapter['title'];
+    // تحميل الملاحظات وموضع القراءة
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final title = widget.chapter['title'] ?? '';
+
+      // تحميل الملاحظات
       Provider.of<NotesProvider>(context, listen: false).loadNotes(title);
+
+      // تحميل موضع القراءة
+      final posProvider =
+          Provider.of<ReadPositionProvider>(context, listen: false);
+
+      await posProvider.loadPosition(title);
+      final savedOffset = posProvider.getPosition(title);
+
+      if (savedOffset > 0) {
+        await Future.delayed(const Duration(milliseconds: 120));
+        if (_scrollController.hasClients) {
+          final max = _scrollController.position.maxScrollExtent;
+          final target = savedOffset.clamp(0.0, max);
+          _scrollController.jumpTo(target);
+        }
+      }
     });
 
-    // حساب التقدم وإظهار زر القراءة عند النهاية
+    // متابعة السكرول
     _scrollController.addListener(() {
       final max = _scrollController.position.maxScrollExtent;
       final current = _scrollController.position.pixels;
+      final title = widget.chapter['title'] ?? '';
 
       if (max <= 0) return;
 
@@ -48,6 +68,10 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
       if (current >= max - 50 && !_showReadButton) {
         setState(() => _showReadButton = true);
       }
+
+      // حفظ موضع القراءة تلقائيًا
+      Provider.of<ReadPositionProvider>(context, listen: false)
+          .savePositionDebounced(title, current);
     });
   }
 
@@ -87,7 +111,7 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
     }
   }
 
-  // نافذة إضافة ملاحظة جديدة
+  // نافذة إضافة ملاحظة
   void _openAddNoteSheet(BuildContext context, String title) {
     final controller = TextEditingController();
 
@@ -151,7 +175,7 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
     );
   }
 
-  // نافذة عرض جميع الملاحظات
+  // نافذة عرض الملاحظات
   void _openViewNotesSheet(BuildContext context, String title) {
     final notesProvider = Provider.of<NotesProvider>(context, listen: false);
     final notes = notesProvider.getNotes(title);
@@ -175,16 +199,12 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
               ),
               const SizedBox(height: 12),
 
-              if (notes.isEmpty)
-                const Text('لا توجد ملاحظات بعد'),
+              if (notes.isEmpty) const Text('لا توجد ملاحظات بعد'),
 
               ...List.generate(notes.length, (index) {
                 return Card(
                   child: ListTile(
-                    title: Text(
-                      notes[index],
-                      textDirection: TextDirection.rtl,
-                    ),
+                    title: Text(notes[index], textDirection: TextDirection.rtl),
                     trailing: IconButton(
                       icon: const Icon(Icons.delete, color: Colors.red),
                       onPressed: () {
@@ -196,8 +216,6 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
                   ),
                 );
               }),
-
-              const SizedBox(height: 12),
             ],
           ),
         );
@@ -238,7 +256,6 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
         ],
       ),
 
-      // أزرار الملاحظات العائمة
       floatingActionButton: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -252,7 +269,6 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
                 onPressed: () => _openViewNotesSheet(context, title),
               ),
             ),
-
           FloatingActionButton(
             heroTag: 'add_note_btn',
             child: const Icon(Icons.edit_note),
@@ -265,7 +281,6 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // بوكس النص
             Expanded(
               child: Container(
                 padding: const EdgeInsets.all(20),
@@ -282,38 +297,40 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
                 ),
                 child: Column(
                   children: [
-                    // شريط التقدم
                     LinearProgressIndicator(value: _progress),
                     const SizedBox(height: 8),
 
-                    // النص
                     Expanded(
                       child: SingleChildScrollView(
                         controller: _scrollController,
                         child: SelectableText(
                           content,
                           textDirection: TextDirection.rtl,
-                          style: TextStyle(fontSize: fontSize, height: 1.8),
+                          style:
+                              TextStyle(fontSize: fontSize, height: 1.8),
                         ),
                       ),
                     ),
 
                     const SizedBox(height: 16),
 
-                    // زر تمّت القراءة يظهر عند النهاية فقط
                     if (_showReadButton)
                       SizedBox(
                         width: double.infinity,
                         child: OutlinedButton.icon(
                           icon: Icon(
                             isRead ? Icons.undo : Icons.check_circle,
-                            color: isRead ? Colors.red : Colors.green,
+                            color:
+                                isRead ? Colors.red : Colors.green,
                           ),
                           label: Text(
-                            isRead ? 'إلغاء القراءة' : 'تمّت القراءة',
+                            isRead
+                                ? 'إلغاء القراءة'
+                                : 'تمّت القراءة',
                             style: TextStyle(
                               fontSize: 18,
-                              color: isRead ? Colors.red : Colors.green,
+                              color:
+                                  isRead ? Colors.red : Colors.green,
                             ),
                           ),
                           onPressed: () {
@@ -332,7 +349,6 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
 
             const SizedBox(height: 16),
 
-            // أزرار النسخ والفيديو
             Row(
               children: [
                 Expanded(
