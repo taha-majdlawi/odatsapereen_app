@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:provider/provider.dart';
+
+import '../utils/favorites_provider.dart';
 
 class ChapterDetailScreen extends StatelessWidget {
   final Map<String, dynamic> chapter;
@@ -12,40 +15,43 @@ class ChapterDetailScreen extends StatelessWidget {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('📋 تم نسخ النص إلى الحافظة')),
     );
-  }void _launchYouTubeVideo(BuildContext context) async {
-  final rawUrl = chapter['videoUrl']?.toString().trim();
-
-  if (rawUrl == null || rawUrl.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('لا يوجد رابط فيديو')),
-    );
-    return;
   }
 
-  final Uri uri = Uri.parse(rawUrl);
+  void _launchYouTubeVideo(BuildContext context) async {
+    final rawUrl = chapter['videoUrl']?.toString().trim();
 
-  try {
-    // جرب الفتح مباشرة بدون استخدام canLaunchUrl كشرط وحيد
-    bool launched = await launchUrl(
-      uri,
-      mode: LaunchMode.externalApplication,
-    );
-
-    if (!launched) {
-       // إذا فشل الفتح الخارجي، جرب الفتح داخل المتصفح الداخلي
-       await launchUrl(uri, mode: LaunchMode.platformDefault);
+    if (rawUrl == null || rawUrl.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('لا يوجد رابط فيديو')),
+      );
+      return;
     }
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('عفواً! تعذر فتح الفيديو حتى في المتصفح')),
-    );
+
+    final Uri uri = Uri.parse(rawUrl);
+
+    try {
+      bool launched = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+
+      if (!launched) {
+        await launchUrl(uri, mode: LaunchMode.platformDefault);
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('عفواً! تعذر فتح الفيديو حتى في المتصفح')),
+      );
+    }
   }
-}
+
   @override
   Widget build(BuildContext context) {
     final title = chapter['title'] ?? '';
     final content = chapter['content'] ?? '';
     final fontSize = Theme.of(context).textTheme.bodyLarge?.fontSize ?? 18;
+
+    final favProvider = Provider.of<FavoritesProvider>(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -55,6 +61,29 @@ class ChapterDetailScreen extends StatelessWidget {
           style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: Icon(
+              favProvider.isFavorite(title)
+                  ? Icons.star
+                  : Icons.star_border,
+            ),
+            onPressed: () {
+              favProvider.toggleFavorite(title);
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    favProvider.isFavorite(title)
+                        ? '❌ تمت الإزالة من المفضلة'
+                        : '⭐ تمت الإضافة إلى المفضلة'
+
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: Container(
         width: double.infinity,
@@ -74,7 +103,7 @@ class ChapterDetailScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
+                  boxShadow: const [
                     BoxShadow(
                       color: Colors.black12,
                       blurRadius: 6,

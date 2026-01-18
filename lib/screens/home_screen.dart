@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:odatsapereen_app/screens/chapter_detailes_screens.dart';
 import 'package:odatsapereen_app/screens/search_screen.dart';
+import 'package:odatsapereen_app/screens/favorites_screen.dart';
 import 'package:provider/provider.dart';
+
 import '../data/chapters_data_clean.dart';
 import '../utils/settings_provider.dart';
 
@@ -21,6 +23,7 @@ class HomeScreen extends StatelessWidget {
         ),
         centerTitle: true,
         actions: [
+          // زر البحث
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () {
@@ -30,8 +33,21 @@ class HomeScreen extends StatelessWidget {
               );
             },
           ),
+
+          // زر المفضلة
+          IconButton(
+            icon: const Icon(Icons.star),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const FavoritesScreen()),
+              );
+            },
+          ),
         ],
       ),
+
+      // القائمة الجانبية
       drawer: Drawer(
         child: ListView(
           children: [
@@ -45,6 +61,8 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
             ),
+
+            // عن التطبيق
             ListTile(
               leading: const Icon(Icons.info_outline),
               title: const Text('عن التطبيق'),
@@ -64,12 +82,16 @@ class HomeScreen extends StatelessWidget {
                 );
               },
             ),
+
+            // الوضع الليلي
             SwitchListTile(
               title: const Text('الوضع الليلي'),
               secondary: const Icon(Icons.dark_mode),
               value: settings.isDarkMode,
               onChanged: (val) => settings.toggleDarkMode(),
             ),
+
+            // حجم الخط
             ListTile(
               leading: const Icon(Icons.text_fields),
               title: const Text('حجم الخط'),
@@ -91,6 +113,8 @@ class HomeScreen extends StatelessWidget {
           ],
         ),
       ),
+
+      // محتوى الصفحة
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
@@ -104,6 +128,7 @@ class HomeScreen extends StatelessWidget {
               textDirection: TextDirection.rtl,
             ),
           ),
+
           Expanded(
             child: ListView.builder(
               itemCount: chapters.length,
@@ -134,7 +159,8 @@ class HomeScreen extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => ChapterDetailScreen(chapter: chapter),
+                          builder: (_) =>
+                              ChapterDetailScreen(chapter: chapter),
                         ),
                       );
                     },

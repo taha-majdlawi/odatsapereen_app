@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:odatsapereen_app/utils/favorites_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/home_screen.dart';
 import 'screens/intro_screen.dart';
 import 'utils/settings_provider.dart';
 import 'utils/app_theme.dart';
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -22,8 +22,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => SettingsProvider(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => SettingsProvider()),
+        ChangeNotifierProvider(create: (_) => FavoritesProvider()),
+      ],
       child: Consumer<SettingsProvider>(
         builder: (context, settings, _) {
           return MaterialApp(
