@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:odatsapereen_app/screens/chapter_detailes_screens.dart';
+import 'package:odatsapereen_app/screens/reading_progress_screen.dart';
 import 'package:odatsapereen_app/screens/search_screen.dart';
 import 'package:odatsapereen_app/screens/favorites_screen.dart';
 import 'package:odatsapereen_app/utils/read_provider.dart';
@@ -112,6 +113,19 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ],
               ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.bar_chart),
+              title: const Text('تقدم القراءة'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ReadingProgressScreen(),
+                  ),
+                );
+              },
             ),
           ],
         ),
