@@ -12,19 +12,35 @@ class ChapterDetailScreen extends StatelessWidget {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('📋 تم نسخ النص إلى الحافظة')),
     );
+  }void _launchYouTubeVideo(BuildContext context) async {
+  final rawUrl = chapter['videoUrl']?.toString().trim();
+
+  if (rawUrl == null || rawUrl.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('لا يوجد رابط فيديو')),
+    );
+    return;
   }
 
-  void _launchYouTubeVideo(BuildContext context) async {
-    final url = chapter['videoUrl'];
-    if (url != null && await canLaunchUrl(Uri.parse(url))) {
-      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تعذر فتح رابط الفيديو')),
-      );
+  final Uri uri = Uri.parse(rawUrl);
+
+  try {
+    // جرب الفتح مباشرة بدون استخدام canLaunchUrl كشرط وحيد
+    bool launched = await launchUrl(
+      uri,
+      mode: LaunchMode.externalApplication,
+    );
+
+    if (!launched) {
+       // إذا فشل الفتح الخارجي، جرب الفتح داخل المتصفح الداخلي
+       await launchUrl(uri, mode: LaunchMode.platformDefault);
     }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('عفواً! تعذر فتح الفيديو حتى في المتصفح')),
+    );
   }
-
+}
   @override
   Widget build(BuildContext context) {
     final title = chapter['title'] ?? '';
