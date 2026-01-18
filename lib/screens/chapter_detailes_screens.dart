@@ -3,22 +3,48 @@ import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
 
+import '../utils/read_provider.dart';
 import '../utils/favorites_provider.dart';
 
-class ChapterDetailScreen extends StatelessWidget {
+class ChapterDetailScreen extends StatefulWidget {
   final Map<String, dynamic> chapter;
 
   const ChapterDetailScreen({super.key, required this.chapter});
 
+  @override
+  State<ChapterDetailScreen> createState() => _ChapterDetailScreenState();
+}
+
+class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
+  final ScrollController _scrollController = ScrollController();
+  bool _showReadButton = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 50) {
+        if (!_showReadButton) {
+          setState(() {
+            _showReadButton = true;
+          });
+        }
+      }
+    });
+  }
+
   void _copyContent(BuildContext context) {
-    Clipboard.setData(ClipboardData(text: chapter['content'] ?? ''));
+    Clipboard.setData(
+        ClipboardData(text: widget.chapter['content'] ?? ''));
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('📋 تم نسخ النص إلى الحافظة')),
     );
   }
 
   void _launchYouTubeVideo(BuildContext context) async {
-    final rawUrl = chapter['videoUrl']?.toString().trim();
+    final rawUrl = widget.chapter['videoUrl']?.toString().trim();
 
     if (rawUrl == null || rawUrl.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -30,28 +56,24 @@ class ChapterDetailScreen extends StatelessWidget {
     final Uri uri = Uri.parse(rawUrl);
 
     try {
-      bool launched = await launchUrl(
-        uri,
-        mode: LaunchMode.externalApplication,
-      );
-
-      if (!launched) {
-        await launchUrl(uri, mode: LaunchMode.platformDefault);
-      }
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('عفواً! تعذر فتح الفيديو حتى في المتصفح')),
+        const SnackBar(content: Text('تعذر فتح الفيديو')),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final title = chapter['title'] ?? '';
-    final content = chapter['content'] ?? '';
+    final title = widget.chapter['title'] ?? '';
+    final content = widget.chapter['content'] ?? '';
     final fontSize = Theme.of(context).textTheme.bodyLarge?.fontSize ?? 18;
 
     final favProvider = Provider.of<FavoritesProvider>(context);
+    final readProvider = Provider.of<ReadProvider>(context);
+
+    final isRead = readProvider.isRead(title);
 
     return Scaffold(
       appBar: AppBar(
@@ -70,31 +92,12 @@ class ChapterDetailScreen extends StatelessWidget {
             ),
             onPressed: () {
               favProvider.toggleFavorite(title);
-
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    favProvider.isFavorite(title)
-                        ? '❌ تمت الإزالة من المفضلة'
-                        : '⭐ تمت الإضافة إلى المفضلة'
-
-                  ),
-                ),
-              );
             },
           ),
         ],
       ),
-      body: Container(
-        width: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFF2F2F2), Color(0xFFEAEAEA)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
             Expanded(
@@ -111,16 +114,53 @@ class ChapterDetailScreen extends StatelessWidget {
                     )
                   ],
                 ),
-                child: SelectableText(
-                  content,
-                  textDirection: TextDirection.rtl,
-                  style: TextStyle(fontSize: fontSize, height: 1.8),
-                  showCursor: true,
-                  cursorColor: Colors.blueGrey,
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        controller: _scrollController,
+                        child: SelectableText(
+                          content,
+                          textDirection: TextDirection.rtl,
+                          style: TextStyle(fontSize: fontSize, height: 1.8),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // يظهر فقط عند نهاية النص
+                    if (_showReadButton)
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          icon: Icon(
+                            isRead ? Icons.undo : Icons.check_circle,
+                            color: isRead ? Colors.red : Colors.green,
+                          ),
+                          label: Text(
+                            isRead ? 'إلغاء القراءة' : 'تمّت القراءة',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: isRead ? Colors.red : Colors.green,
+                            ),
+                          ),
+                          onPressed: () {
+                            if (isRead) {
+                              readProvider.unmarkAsRead(title);
+                            } else {
+                              readProvider.markAsRead(title);
+                            }
+                          },
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ),
+
             const SizedBox(height: 16),
+
             Row(
               children: [
                 Expanded(
@@ -139,7 +179,7 @@ class ChapterDetailScreen extends StatelessWidget {
                   ),
                 ),
               ],
-            )
+            ),
           ],
         ),
       ),

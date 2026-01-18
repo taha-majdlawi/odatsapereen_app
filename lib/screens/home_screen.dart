@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:odatsapereen_app/screens/chapter_detailes_screens.dart';
 import 'package:odatsapereen_app/screens/search_screen.dart';
 import 'package:odatsapereen_app/screens/favorites_screen.dart';
+import 'package:odatsapereen_app/utils/read_provider.dart';
 import 'package:provider/provider.dart';
 
 import '../data/chapters_data_clean.dart';
@@ -12,6 +13,8 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final readProvider = Provider.of<ReadProvider>(context);
+
     final settings = Provider.of<SettingsProvider>(context);
 
     return Scaffold(
@@ -154,13 +157,21 @@ class HomeScreen extends StatelessWidget {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    trailing: const Icon(Icons.arrow_forward_ios),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (readProvider.isRead(chapter['title']))
+                          const Icon(Icons.check_circle, color: Colors.green),
+                        const SizedBox(width: 6),
+                        const Icon(Icons.arrow_forward_ios),
+                      ],
+                    ),
+
                     onTap: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) =>
-                              ChapterDetailScreen(chapter: chapter),
+                          builder: (_) => ChapterDetailScreen(chapter: chapter),
                         ),
                       );
                     },
