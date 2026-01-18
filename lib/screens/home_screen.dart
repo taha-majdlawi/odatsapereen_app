@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:odatsapereen_app/screens/chapter_detailes_screens.dart';
+import 'package:odatsapereen_app/screens/search_screen.dart';
 import 'package:provider/provider.dart';
 import '../data/chapters_data_clean.dart';
 import '../utils/settings_provider.dart';
@@ -19,14 +20,23 @@ class HomeScreen extends StatelessWidget {
           textDirection: TextDirection.rtl,
         ),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SearchScreen()),
+              );
+            },
+          ),
+        ],
       ),
       drawer: Drawer(
         child: ListView(
           children: [
             const DrawerHeader(
-              decoration: BoxDecoration(
-                color: Colors.deepPurple,
-              ),
+              decoration: BoxDecoration(color: Colors.deepPurple),
               child: Center(
                 child: Text(
                   '📘 إعدادات التطبيق',
@@ -101,10 +111,16 @@ class HomeScreen extends StatelessWidget {
                 final chapter = chapters[index];
 
                 return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   elevation: 2,
                   child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                     title: Text(
                       chapter['title'],
                       textDirection: TextDirection.rtl,
