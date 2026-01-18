@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:odatsapereen_app/utils/favorites_provider.dart';
+import 'package:odatsapereen_app/utils/notes_provider.dart';
 import 'package:odatsapereen_app/utils/read_provider.dart';
+import 'package:odatsapereen_app/utils/reading_position_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/home_screen.dart';
@@ -29,6 +31,8 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
         ChangeNotifierProvider(create: (_) => FavoritesProvider()),
         ChangeNotifierProvider(create: (_) => ReadProvider()),
+        ChangeNotifierProvider(create: (_) => ReadingPositionProvider()),
+        ChangeNotifierProvider(create: (_) => NotesProvider()),
       ],
       child: Consumer<SettingsProvider>(
         builder: (context, settings, _) {
