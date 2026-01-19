@@ -15,13 +15,15 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final readProvider = Provider.of<ReadProvider>(context);
-
     final settings = Provider.of<SettingsProvider>(context);
+
+    final primaryColor = Theme.of(context).colorScheme.primary;
+    final cardColor = Theme.of(context).cardColor;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          '📚 عدة الصابرين',
+          'عدة الصابرين',
           style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           textDirection: TextDirection.rtl,
         ),
@@ -40,7 +42,7 @@ class HomeScreen extends StatelessWidget {
 
           // زر المفضلة
           IconButton(
-            icon: const Icon(Icons.star),
+            icon: const Icon(Icons.star_border),
             onPressed: () {
               Navigator.push(
                 context,
@@ -55,11 +57,11 @@ class HomeScreen extends StatelessWidget {
       drawer: Drawer(
         child: ListView(
           children: [
-            const DrawerHeader(
-              decoration: BoxDecoration(color: Colors.deepPurple),
-              child: Center(
+            DrawerHeader(
+              decoration: BoxDecoration(color: primaryColor),
+              child: const Center(
                 child: Text(
-                  '📘 إعدادات التطبيق',
+                  'إعدادات التطبيق',
                   style: TextStyle(color: Colors.white, fontSize: 20),
                   textDirection: TextDirection.rtl,
                 ),
@@ -75,11 +77,11 @@ class HomeScreen extends StatelessWidget {
                   context: context,
                   applicationName: 'عدة الصابرين',
                   applicationVersion: '1.0',
-                  applicationLegalese: 'بواسطة طالب علم 🕌',
+                  applicationLegalese: 'إعداد طالب علم',
                   children: const [
                     SizedBox(height: 16),
                     Text(
-                      'تطبيق يعرض محتوى كتاب ابن القيم "عدة الصابرين وذخيرة الشاكرين"، بأسلوب مريح يساعد على القراءة والتدبر في أي وقت.',
+                      'تطبيق يعرض محتوى كتاب ابن القيم "عدة الصابرين وذخيرة الشاكرين" بأسلوب مريح يساعد على القراءة والتدبر في أي وقت.',
                       textDirection: TextDirection.rtl,
                     ),
                   ],
@@ -114,6 +116,8 @@ class HomeScreen extends StatelessWidget {
                 ],
               ),
             ),
+
+            // تقدم القراءة
             ListTile(
               leading: const Icon(Icons.bar_chart),
               title: const Text('تقدم القراءة'),
@@ -136,11 +140,11 @@ class HomeScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            color: Theme.of(context).primaryColor.withOpacity(0.1),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             width: double.infinity,
+            color: primaryColor.withValues(alpha: 0.08),
             child: const Text(
-              '📖 هذا التطبيق يعرض كتاب "عدة الصابرين" لابن القيم بأسلوب بسيط للقراءة والفهم. اضغط على أي فصل للبدء.',
+              'هذا التطبيق يعرض كتاب "عدة الصابرين" لابن القيم بأسلوب بسيط يساعد على القراءة والتدبر. اضغط على أي فصل للبدء.',
               style: TextStyle(fontSize: 16),
               textDirection: TextDirection.rtl,
             ),
@@ -148,16 +152,22 @@ class HomeScreen extends StatelessWidget {
 
           Expanded(
             child: ListView.builder(
+              padding: const EdgeInsets.symmetric(vertical: 8),
               itemCount: chapters.length,
               itemBuilder: (context, index) {
                 final chapter = chapters[index];
+                final isRead = readProvider.isRead(chapter['title']);
 
                 return Card(
                   margin: const EdgeInsets.symmetric(
                     horizontal: 12,
                     vertical: 6,
                   ),
-                  elevation: 2,
+                  elevation: 3,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  color: cardColor,
                   child: ListTile(
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -174,18 +184,18 @@ class HomeScreen extends StatelessWidget {
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        if (readProvider.isRead(chapter['title']))
+                        if (isRead)
                           const Icon(Icons.check_circle, color: Colors.green),
-                        const SizedBox(width: 6),
-                        const Icon(Icons.arrow_forward_ios),
+                        const SizedBox(width: 8),
+                        const Icon(Icons.arrow_forward_ios, size: 18),
                       ],
                     ),
-
                     onTap: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => ChapterDetailScreen(chapter: chapter),
+                          builder: (_) =>
+                              ChapterDetailScreen(chapter: chapter),
                         ),
                       );
                     },
