@@ -18,26 +18,41 @@ class FavoritesScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('⭐ الفصول المفضلة', textDirection: TextDirection.rtl),
+        title: const Text(
+          'الفصول المفضلة',
+          textDirection: TextDirection.rtl,
+        ),
         centerTitle: true,
       ),
+
       body: favoriteChapters.isEmpty
-          ? const Center(
+          ? Center(
               child: Text(
                 'لا توجد فصول مفضلة بعد',
-                style: TextStyle(fontSize: 18),
+                style: Theme.of(context).textTheme.bodyLarge,
                 textDirection: TextDirection.rtl,
               ),
             )
           : ListView.builder(
+              padding: const EdgeInsets.symmetric(vertical: 8),
               itemCount: favoriteChapters.length,
               itemBuilder: (context, index) {
                 final chapter = favoriteChapters[index];
 
                 return Card(
-                  margin:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  elevation: 3,
                   child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
                     title: Text(
                       chapter['title'],
                       textDirection: TextDirection.rtl,
@@ -46,9 +61,13 @@ class FavoritesScreen extends StatelessWidget {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    leading: const Icon(Icons.star, color: Colors.amber),
+                    leading: Icon(
+                      Icons.star,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                     trailing: IconButton(
                       icon: const Icon(Icons.delete_outline),
+                      color: Colors.red,
                       onPressed: () {
                         favProvider.toggleFavorite(chapter['title']);
 
