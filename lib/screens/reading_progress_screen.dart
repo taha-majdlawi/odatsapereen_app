@@ -25,10 +25,13 @@ class ReadingProgressScreen extends StatelessWidget {
 
     final globalPercent = (globalProgress * 100).toStringAsFixed(0);
 
+    final primaryColor = Theme.of(context).colorScheme.primary;
+    final cardColor = Theme.of(context).cardColor;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          '📊 تقدم القراءة',
+          'تقدم القراءة',
           textDirection: TextDirection.rtl,
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
@@ -43,7 +46,7 @@ class ReadingProgressScreen extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
+                color: cardColor,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: const [
                   BoxShadow(
@@ -76,27 +79,30 @@ class ReadingProgressScreen extends StatelessWidget {
                     child: LinearProgressIndicator(
                       value: globalProgress,
                       minHeight: 12,
+                      color: primaryColor,
+                      backgroundColor:
+                          primaryColor.withValues(alpha: 0.15),
                     ),
                   ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
 
             Align(
               alignment: Alignment.centerRight,
               child: Text(
-                '📖 تقدم جميع الفصول',
+                'تقدم جميع الفصول',
                 textDirection: TextDirection.rtl,
                 style: const TextStyle(
-                  fontSize: 16,
+                  fontSize: 17,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ),
 
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
 
             // قائمة جميع الفصول مع نسبة التقدم لكل فصل
             Expanded(
@@ -122,20 +128,27 @@ class ReadingProgressScreen extends StatelessWidget {
 
                   return Card(
                     margin: const EdgeInsets.symmetric(vertical: 8),
+                    elevation: 3,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    color: cardColor,
                     child: Padding(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(14),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Row(
                             children: [
-                              if (isRead)
-                                const Icon(Icons.check_circle,
-                                    color: Colors.green),
-                              if (!isRead)
-                                const Icon(Icons.menu_book,
-                                    color: Colors.blueGrey),
-                              const SizedBox(width: 8),
+                              Icon(
+                                isRead
+                                    ? Icons.check_circle
+                                    : Icons.menu_book,
+                                color: isRead
+                                    ? Colors.green
+                                    : Colors.blueGrey,
+                              ),
+                              const SizedBox(width: 10),
                               Expanded(
                                 child: Text(
                                   title,
@@ -149,7 +162,7 @@ class ReadingProgressScreen extends StatelessWidget {
                             ],
                           ),
 
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 8),
 
                           Text(
                             'نسبة التقدم: %$percent',
@@ -157,13 +170,16 @@ class ReadingProgressScreen extends StatelessWidget {
                             style: const TextStyle(fontSize: 14),
                           ),
 
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 8),
 
                           ClipRRect(
                             borderRadius: BorderRadius.circular(8),
                             child: LinearProgressIndicator(
                               value: progress,
                               minHeight: 8,
+                              color: primaryColor,
+                              backgroundColor:
+                                  primaryColor.withValues(alpha: 0.15),
                             ),
                           ),
                         ],
