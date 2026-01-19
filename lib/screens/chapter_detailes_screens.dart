@@ -27,16 +27,15 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
   void initState() {
     super.initState();
 
-    // تحميل الملاحظات وموضع القراءة
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final title = widget.chapter['title'] ?? '';
 
-      // تحميل الملاحظات
       Provider.of<NotesProvider>(context, listen: false).loadNotes(title);
 
-      // تحميل موضع القراءة
-      final posProvider =
-          Provider.of<ReadPositionProvider>(context, listen: false);
+      final posProvider = Provider.of<ReadPositionProvider>(
+        context,
+        listen: false,
+      );
 
       await posProvider.loadPosition(title);
       final savedOffset = posProvider.getPosition(title);
@@ -51,7 +50,6 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
       }
     });
 
-    // متابعة السكرول
     _scrollController.addListener(() {
       final max = _scrollController.position.maxScrollExtent;
       final current = _scrollController.position.pixels;
@@ -69,9 +67,10 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
         setState(() => _showReadButton = true);
       }
 
-      // حفظ موضع القراءة تلقائيًا
-      Provider.of<ReadPositionProvider>(context, listen: false)
-          .savePositionDebounced(title, current);
+      Provider.of<ReadPositionProvider>(
+        context,
+        listen: false,
+      ).savePositionDebounced(title, current);
     });
   }
 
@@ -82,21 +81,19 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
   }
 
   void _copyContent(BuildContext context) {
-    Clipboard.setData(
-      ClipboardData(text: widget.chapter['content'] ?? ''),
-    );
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('📋 تم نسخ النص إلى الحافظة')),
-    );
+    Clipboard.setData(ClipboardData(text: widget.chapter['content'] ?? ''));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('تم نسخ النص إلى الحافظة')));
   }
 
   void _launchYouTubeVideo(BuildContext context) async {
     final rawUrl = widget.chapter['videoUrl']?.toString().trim();
 
     if (rawUrl == null || rawUrl.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('لا يوجد رابط فيديو')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('لا يوجد رابط فيديو')));
       return;
     }
 
@@ -105,13 +102,12 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
     try {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تعذر فتح الفيديو')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('تعذر فتح الفيديو')));
     }
   }
 
-  // نافذة إضافة ملاحظة
   void _openAddNoteSheet(BuildContext context, String title) {
     final controller = TextEditingController();
 
@@ -134,7 +130,7 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               const Text(
-                '✍️ إضافة ملاحظة جديدة',
+                'إضافة ملاحظة جديدة',
                 textDirection: TextDirection.rtl,
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
@@ -152,17 +148,19 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  child: const Text('إضافة الملاحظة'),
+                  child: const Text('حفظ الملاحظة'),
                   onPressed: () {
                     if (controller.text.trim().isEmpty) return;
 
-                    Provider.of<NotesProvider>(context, listen: false)
-                        .addNote(title, controller.text.trim());
+                    Provider.of<NotesProvider>(
+                      context,
+                      listen: false,
+                    ).addNote(title, controller.text.trim());
 
                     Navigator.pop(context);
 
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('تمت إضافة الملاحظة ✨')),
+                      const SnackBar(content: Text('تم حفظ الملاحظة')),
                     );
                   },
                 ),
@@ -175,7 +173,6 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
     );
   }
 
-  // نافذة عرض الملاحظات
   void _openViewNotesSheet(BuildContext context, String title) {
     final notesProvider = Provider.of<NotesProvider>(context, listen: false);
     final notes = notesProvider.getNotes(title);
@@ -193,7 +190,7 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               const Text(
-                '📄 ملاحظاتك على هذا الفصل',
+                'ملاحظات هذا الفصل',
                 textDirection: TextDirection.rtl,
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
@@ -247,9 +244,7 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
         actions: [
           IconButton(
             icon: Icon(
-              favProvider.isFavorite(title)
-                  ? Icons.star
-                  : Icons.star_border,
+              favProvider.isFavorite(title) ? Icons.star : Icons.star_border,
             ),
             onPressed: () => favProvider.toggleFavorite(title),
           ),
@@ -264,7 +259,6 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
               padding: const EdgeInsets.only(bottom: 8),
               child: FloatingActionButton.small(
                 heroTag: 'view_notes_btn',
-                backgroundColor: Colors.blueGrey,
                 child: const Icon(Icons.description),
                 onPressed: () => _openViewNotesSheet(context, title),
               ),
@@ -297,7 +291,18 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
                 ),
                 child: Column(
                   children: [
-                    LinearProgressIndicator(value: _progress),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: LinearProgressIndicator(
+                        value: _progress,
+                        color: Theme.of(context).colorScheme.primary,
+                        backgroundColor: Theme.of(
+                          context,
+                        ).colorScheme.primary.withValues(alpha: 0.15),
+                        minHeight: 8,
+                      ),
+                    ),
+
                     const SizedBox(height: 8),
 
                     Expanded(
@@ -306,8 +311,7 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
                         child: SelectableText(
                           content,
                           textDirection: TextDirection.rtl,
-                          style:
-                              TextStyle(fontSize: fontSize, height: 1.8),
+                          style: TextStyle(fontSize: fontSize, height: 1.8),
                         ),
                       ),
                     ),
@@ -320,17 +324,13 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
                         child: OutlinedButton.icon(
                           icon: Icon(
                             isRead ? Icons.undo : Icons.check_circle,
-                            color:
-                                isRead ? Colors.red : Colors.green,
+                            color: isRead ? Colors.red : Colors.green,
                           ),
                           label: Text(
-                            isRead
-                                ? 'إلغاء القراءة'
-                                : 'تمّت القراءة',
+                            isRead ? 'إلغاء القراءة' : 'تمت القراءة',
                             style: TextStyle(
                               fontSize: 18,
-                              color:
-                                  isRead ? Colors.red : Colors.green,
+                              color: isRead ? Colors.red : Colors.green,
                             ),
                           ),
                           onPressed: () {
