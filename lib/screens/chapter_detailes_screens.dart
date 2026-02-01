@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:odatsapereen_app/screens/youtube_player_screem.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
+import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 import '../utils/read_provider.dart';
 import '../utils/favorites_provider.dart';
@@ -86,27 +88,34 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
       context,
     ).showSnackBar(const SnackBar(content: Text('تم نسخ النص إلى الحافظة')));
   }
+void _launchYouTubeVideo(BuildContext context) {
+  final rawUrl = widget.chapter['videoUrl']?.toString().trim();
 
-  void _launchYouTubeVideo(BuildContext context) async {
-    final rawUrl = widget.chapter['videoUrl']?.toString().trim();
-
-    if (rawUrl == null || rawUrl.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('لا يوجد رابط فيديو')));
-      return;
-    }
-
-    final Uri uri = Uri.parse(rawUrl);
-
-    try {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('تعذر فتح الفيديو')));
-    }
+  if (rawUrl == null || rawUrl.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('لا يوجد رابط فيديو')),
+    );
+    return;
   }
+
+  final videoId = YoutubePlayer.convertUrlToId(rawUrl);
+
+  if (videoId == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('رابط يوتيوب غير صالح')),
+    );
+    return;
+  }
+
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => YouTubeVideoScreen(videoId: videoId),
+    ),
+  );
+}
+
+
 
   void _openAddNoteSheet(BuildContext context, String title) {
     final controller = TextEditingController();
